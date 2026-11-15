@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartChef IA — Generador de Recetas con Inventario</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/static/css/estilos.css" />
+</head>
+<body>
+  <header class="barra-navegacion">
+    <div class="barra-interior">
+      <div class="marca">
+        <span>🍳 SmartChef IA</span>
+        <span class="insignia-marca">Inventario + LLM</span>
+      </div>
+      <div class="acciones-navegacion">
+        <a href="/docs" target="_blank" class="enlace-navegacion">Swagger API (/docs)</a>
+        <div id="navegacion-usuario" class="acciones-navegacion oculto">
+          <span id="etiqueta-nombre-usuario" style="font-size: 0.86rem; font-weight: 600;"></span>
+          <button type="button" class="boton boton-borde boton-pequeno" onclick="cerrarSesion()">
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="contenedor">
+    <div id="caja-alerta" class="alerta oculto"></div>
+
+    <section id="seccion-autenticacion" class="contenedor-autenticacion">
+      <div class="tarjeta">
+        <h1 class="titulo-tarjeta">Bienvenido a SmartChef IA</h1>
+        <p class="subtitulo-tarjeta">
+          Registra los ingredientes disponibles en tu hogar y obtén recetas estructuradas generadas con Inteligencia Artificial.
+        </p>
+
+        <div class="pestanas-autenticacion">
+          <button
+            type="button"
+            id="pestana-login"
+            class="pestana-autenticacion activa"
+            onclick="cambiarPestanaAutenticacion('login')"
+          >
+            Iniciar Sesión
+          </button>
+          <button
+            type="button"
+            id="pestana-registro"
+            class="pestana-autenticacion"
+            onclick="cambiarPestanaAutenticacion('registro')"
+          >
+            Registrarse
+          </button>
+        </div>
+
+        <form id="formulario-autenticacion" data-modo="login" onsubmit="enviarFormularioAutenticacion(event)">
+          <div id="grupo-nombre" class="grupo-formulario oculto">
+            <label for="auth-nombre">Nombre completo</label>
+            <input
+              type="text"
+              id="auth-nombre"
+              placeholder="Ej: Estudiante Unisimón"
+              minlength="2"
+            />
+          </div>
+          <div class="grupo-formulario">
+            <label for="auth-correo">Correo electrónico</label>
+            <input
+              type="email"
+              id="auth-correo"
+              placeholder="usuario@unisimon.edu.co"
+              required
+            />
+          </div>
+          <div class="grupo-formulario">
+            <label for="auth-contrasena">Contraseña</label>
+            <input
+              type="password"
+              id="auth-contrasena"
+              placeholder="Mínimo 6 caracteres"
+              minlength="6"
+              required
+            />
+          </div>
+          <button type="submit" id="boton-enviar-auth" class="boton boton-primario boton-bloque">
+            Iniciar sesión
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section id="seccion-panel" class="cuadricula-panel oculto">
+      <div class="tarjeta">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 class="titulo-tarjeta">🥕 Mi Inventario en Casa</h2>
+          <span id="contador-inventario" class="insignia insignia-verde">0 disponibles</span>
+        </div>
+        <p class="subtitulo-tarjeta">
+          Agrega o actualiza los ingredientes con los que cuentas actualmente.
+        </p>
+
+        <form id="formulario-ingrediente" onsubmit="enviarFormularioIngrediente(event)">
+          <div class="grupo-formulario">
+            <label for="ing-nombre">Ingrediente</label>
+            <input
+              type="text"
+              id="ing-nombre"
+              placeholder="Ej: Pechuga de pollo, Arroz, Tomate..."
+              required
+            />
+          </div>
+          <div class="fila-en-linea">
+            <div class="grupo-formulario">
+              <label for="ing-cantidad">Cantidad</label>
+              <input
+                type="number"
+                id="ing-cantidad"
+                step="0.1"
+                min="0.1"
+                placeholder="Ej: 500"
+                required
+              />
+            </div>
+            <div class="grupo-formulario">
+              <label for="ing-unidad">Unidad</label>
+              <select id="ing-unidad" required>
+                <option value="gramos">gramos (g)</option>
+                <option value="unidades">unidades</option>
+                <option value="mililitros">mililitros (ml)</option>
+                <option value="tazas">tazas</option>
+                <option value="cucharadas">cucharadas</option>
+                <option value="libras">libras</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" id="boton-guardar-ingrediente" class="boton boton-primario boton-bloque">
+              + Agregar al inventario
+            </button>
+            <button
+              type="button"
+              id="boton-cancelar-ingrediente"
+              class="boton boton-borde oculto"
+              onclick="cancelarEdicionIngrediente()"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+
+        <ul id="lista-ingredientes" class="lista-ingredientes"></ul>
+      </div>
+
+      <div>
+        <div class="tarjeta" style="margin-bottom: 1.5rem;">
+          <h2 class="titulo-tarjeta">✨ Generar Receta con IA</h2>
+          <p class="subtitulo-tarjeta">
+            Nuestro servicio interno analiza tu inventario actual y estructura una receta completa en formato JSON (ingredientes, pasos, tiempo y dificultad).
+          </p>
+          <form onsubmit="generarRecetaIA(event)" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <select id="preferencia-receta" style="flex: 1; min-width: 210px;">
+              <option value="">Cualquier tipo de plato (Automático)</option>
+              <option value="Desayuno energético">Desayuno energético</option>
+              <option value="Almuerzo casero completo">Almuerzo casero completo</option>
+              <option value="Cena ligera y saludable">Cena ligera y saludable</option>
+              <option value="Receta rápida en menos de 20 minutos">Rápida (menos de 20 min)</option>
+            </select>
+            <button type="submit" id="boton-generar" class="boton boton-primario">
+              🍳 Generar Receta desde mi Inventario
+            </button>
+          </form>
+        </div>
+
+        <div class="tarjeta">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="titulo-tarjeta">📖 Mis Recetas Generadas</h2>
+              <p class="subtitulo-tarjeta" style="margin-bottom: 0;">
+                Consulta, guarda, elimina o califica tus recetas de 1 a 5 estrellas.
+              </p>
+            </div>
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.86rem; cursor: pointer;">
+              <input
+                type="checkbox"
+                id="filtro-guardadas"
+                style="width: auto;"
+                onchange="cargarRecetas()"
+              />
+              Solo guardadas (★)
+            </label>
+          </div>
+
+          <div id="contenedor-recetas" class="lista-recetas"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/js/aplicacion.js"></script>
+</body>
+</html>
