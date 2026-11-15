@@ -13,6 +13,8 @@ htmlcov/
 *.db
 *.sqlite3
 cloudflared.exe
+*.docx
+*.pdf
 .DS_Store
 Thumbs.db
 .vscode/

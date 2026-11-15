@@ -1,0 +1,48 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: recetas_mysql
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-cambiar_root_password_seguro}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-recetas_db}
+      MYSQL_USER: ${MYSQL_USER:-recetas_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-cambiar_password_seguro}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  app:
+    build: .
+    container_name: recetas_fastapi
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-recetas_user}:${MYSQL_PASSWORD:-cambiar_password_seguro}@db:3306/${MYSQL_DATABASE:-recetas_db}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: recetas_cloudflare_tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://app:8000
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - app
+
+volumes:
+  mysql_data:
