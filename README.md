@@ -4,6 +4,11 @@ Aplicación web full-stack que permite a los usuarios registrar el inventario de
 
 Repositorio oficial: https://github.com/Jbolivar05/ParcialFinal
 
+- **URL de la Aplicación Desplegada (HTTPS Cloudflare — Sesión Activa):** https://adopted-machinery-correctly-liable.trycloudflare.com
+- **Documentación Automática OpenAPI / Swagger UI (HTTPS — Sesión Activa):** https://adopted-machinery-correctly-liable.trycloudflare.com/docs
+- **URL HTTPS registrada en las capturas del PDF de entrega (15/11/2026):** `https://queries-underlying-roman-spread.trycloudflare.com` *(Subdominio efímero de la sesión inicial de Cloudflare Quick Tunnel; rotado automáticamente por Cloudflare al enlace activo superior).*
+- **Servidor Local FastAPI:** http://127.0.0.1:8000 (Swagger local: http://127.0.0.1:8000/docs)
+
 ---
 
 ## Tecnologías Utilizadas
