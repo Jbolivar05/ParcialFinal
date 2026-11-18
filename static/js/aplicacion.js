@@ -154,18 +154,22 @@ async function cargarIngredientes() {
       .map(
         (item) => `
       <li class="item-ingrediente">
-        <div class="info-ingrediente">
+        <header class="info-ingrediente">
           <strong>${escaparHtml(item.nombre)}</strong>
-          <span>${item.cantidad} ${escaparHtml(item.unidad)}</span>
-        </div>
-        <div class="acciones-ingrediente">
-          <button class="boton boton-borde boton-pequeno" onclick="iniciarEdicionIngrediente(${item.id}, '${escaparComillas(item.nombre)}', ${item.cantidad}, '${escaparComillas(item.unidad)}')">
-            Editar
-          </button>
-          <button class="boton boton-peligro boton-pequeno" onclick="eliminarIngrediente(${item.id})">
-            Eliminar
-          </button>
-        </div>
+          <data value="${item.cantidad}">${item.cantidad} ${escaparHtml(item.unidad)}</data>
+        </header>
+        <menu class="acciones-ingrediente">
+          <li>
+            <button type="button" class="boton boton-borde boton-pequeno" onclick="iniciarEdicionIngrediente(${item.id}, '${escaparComillas(item.nombre)}', ${item.cantidad}, '${escaparComillas(item.unidad)}')">
+              Editar
+            </button>
+          </li>
+          <li>
+            <button type="button" class="boton boton-peligro boton-pequeno" onclick="eliminarIngrediente(${item.id})">
+              Eliminar
+            </button>
+          </li>
+        </menu>
       </li>`
       )
       .join("");
@@ -261,9 +265,9 @@ async function cargarRecetas() {
     const recetas = await peticionApi(`/recetas?solo_guardadas=${soloGuardadas}`);
     if (recetas.length === 0) {
       contenedor.innerHTML = `
-        <div class="estado-vacio">
+        <p class="estado-vacio">
           Aún no hay recetas en esta vista. ¡Agrega ingredientes a tu inventario y presiona "Generar Receta con IA"!
-        </div>`;
+        </p>`;
       return;
     }
 
@@ -287,57 +291,67 @@ async function cargarRecetas() {
 
         return `
         <article class="tarjeta-receta">
-          <div class="encabezado-receta">
-            <div>
+          <header class="encabezado-receta">
+            <hgroup>
               <h3 class="titulo-receta">${escaparHtml(r.nombre_del_plato)}</h3>
-              <div class="insignias-receta">
-                <span class="insignia insignia-verde">⏱ ${escaparHtml(r.tiempo_estimado)}</span>
-                <span class="insignia insignia-ambar">📊 Dificultad: ${escaparHtml(r.nivel_de_dificultad)}</span>
-                <span class="insignia">${textoPromedio}</span>
-              </div>
-            </div>
-            <div class="acciones-ingrediente">
-              <button
-                class="boton boton-borde boton-pequeno"
-                onclick="alternarGuardarReceta(${r.id})"
-              >
-                ${r.guardada ? "★ Guardada" : "☆ Guardar"}
-              </button>
-              <button
-                class="boton boton-peligro boton-pequeno"
-                onclick="eliminarReceta(${r.id})"
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
+              <ul class="insignias-receta">
+                <li><span class="insignia insignia-verde">⏱ ${escaparHtml(r.tiempo_estimado)}</span></li>
+                <li><span class="insignia insignia-ambar">📊 Dificultad: ${escaparHtml(r.nivel_de_dificultad)}</span></li>
+                <li><span class="insignia">${textoPromedio}</span></li>
+              </ul>
+            </hgroup>
+            <menu class="acciones-ingrediente">
+              <li>
+                <button
+                  type="button"
+                  class="boton boton-borde boton-pequeno"
+                  onclick="alternarGuardarReceta(${r.id})"
+                >
+                  ${r.guardada ? "★ Guardada" : "☆ Guardar"}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="boton boton-peligro boton-pequeno"
+                  onclick="eliminarReceta(${r.id})"
+                >
+                  Eliminar
+                </button>
+              </li>
+            </menu>
+          </header>
 
-          <div class="titulo-seccion-receta">Ingredientes y cantidades</div>
-          <div class="pastillas-ingredientes">
-            ${r.ingredientes
-              .map(
-                (ing) =>
-                  `<span class="pastilla-ingrediente"><strong>${escaparHtml(ing.nombre)}:</strong> ${escaparHtml(ing.cantidad)}</span>`
-              )
-              .join("")}
-          </div>
+          <section aria-label="Ingredientes de la receta">
+            <h4 class="titulo-seccion-receta">Ingredientes y cantidades</h4>
+            <ul class="pastillas-ingredientes">
+              ${r.ingredientes
+                .map(
+                  (ing) =>
+                    `<li class="pastilla-ingrediente"><strong>${escaparHtml(ing.nombre)}:</strong> ${escaparHtml(ing.cantidad)}</li>`
+                )
+                .join("")}
+            </ul>
+          </section>
 
-          <div class="titulo-seccion-receta">Pasos de preparación</div>
-          <ol class="pasos-receta">
-            ${r.pasos_de_preparacion
-              .map((paso) => `<li>${escaparHtml(paso)}</li>`)
-              .join("")}
-          </ol>
+          <section aria-label="Instrucciones de preparación">
+            <h4 class="titulo-seccion-receta">Pasos de preparación</h4>
+            <ol class="pasos-receta">
+              ${r.pasos_de_preparacion
+                .map((paso) => `<li>${escaparHtml(paso)}</li>`)
+                .join("")}
+            </ol>
+          </section>
 
-          <div class="caja-calificacion">
-            <div>
-              <strong style="font-size: 0.86rem;">Calificar receta (1 a 5 estrellas):</strong>
-              <div class="grupo-estrellas">${estrellasHtml}</div>
-            </div>
-            <span style="font-size: 0.78rem; color: var(--texto-suave);">
+          <footer class="caja-calificacion">
+            <fieldset>
+              <legend class="etiqueta-calificacion">Calificar receta (1 a 5 estrellas):</legend>
+              <nav class="grupo-estrellas" aria-label="Calificación por estrellas">${estrellasHtml}</nav>
+            </fieldset>
+            <time class="fecha-receta" datetime="${escaparHtml(r.fecha_creacion)}">
               Generada el ${new Date(r.fecha_creacion).toLocaleDateString("es-CO")}
-            </span>
-          </div>
+            </time>
+          </footer>
         </article>`;
       })
       .join("");
